@@ -1,98 +1,56 @@
 // src/components/InterviewSchedulingComponent.js
 
 import React, { useState, useEffect } from 'react';
-import { firestore } from '../firebase';
-import { collection, addDoc, getDocs } from 'firebase/firestore';
+import FirestoreService from '../services/firestoreService';
+import InterviewListView from './InterviewListView'; // A sub-component to list interviews
+import InterviewForm from './InterviewForm'; // A sub-component for adding/editing interviews
 
 const InterviewSchedulingComponent = () => {
-    const [interview, setInterview] = useState({
-        candidateName: '',
-        interviewDate: '',
-        time: '',
-        interviewer: '',
-        platformLocation: '',
-        confirmationStatus: false
-    });
-    const [candidates, setCandidates] = useState([]);
-    const [interviewers, setInterviewers] = useState([]);
-    const [error, setError] = useState('');
-    const [successMessage, setSuccessMessage] = useState('');
+    const [interviews, setInterviews] = useState([]);
+    const [selectedInterview, setSelectedInterview] = useState(null);
+    const [isEditing, setIsEditing] = useState(false);
 
     useEffect(() => {
-        // Fetch candidates and interviewers from Firestore
-        const fetchData = async () => {
-            try {
-                const candidatesSnapshot = await getDocs(collection(firestore, 'candidates'));
-                const interviewersSnapshot = await getDocs(collection(firestore, 'interviewers'));
-                setCandidates(candidatesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-                setInterviewers(interviewersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-            } catch (err) {
-                setError('Error fetching data');
-            }
+        const fetchInterviews = async () => {
+            const interviewsData = await FirestoreService.getAll('interviews');
+            setInterviews(interviewsData);
         };
 
-        fetchData();
+        fetchInterviews();
     }, []);
 
-    const handleChange = (e) => {
-        const { name, value, type, checked } = e.target;
-        setInterview({ ...interview, [name]: type === 'checkbox' ? checked : value });
+    const handleSelectInterview = (interviewId) => {
+        const interview = interviews.find(i => i.id === interviewId);
+        setSelectedInterview(interview);
+        setIsEditing(false);
     };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+    const handleEditInterview = (interviewId) => {
+        const interview = interviews.find(i => i.id === interviewId);
+        setSelectedInterview(interview);
+        setIsEditing(true);
+    };
+
+    const handleInterviewSubmit = async (interviewData) => {
         try {
-            await addDoc(collection(firestore, 'interviews'), interview);
-            setSuccessMessage('Interview scheduled successfully!');
-            setTimeout(() => setSuccessMessage(''), 3000); // Clear message after 3 seconds
-            setInterview({ candidateName: '', interviewDate: '', time: '', interviewer: '', platformLocation: '', confirmationStatus: false }); // Reset form
-        } catch (err) {
-            setError('Error scheduling interview');
+            if (isEditing && selectedInterview) {
+                await FirestoreService.update('interviews', selectedInterview.id, interviewData);
+            } else {
+                await FirestoreService.add('interviews', interviewData);
+            }
+        } catch (error) {
+            console.error('Error managing interview:', error);
+            // Handle error appropriately
         }
+        setSelectedInterview(null);
+        setIsEditing(false);
     };
 
     return (
         <div>
             <h1>Interview Scheduling</h1>
-            {error && <div style={{ color: 'red' }}>{error}</div>}
-            {successMessage && <div style={{ color: 'green' }}>{successMessage}</div>}
-            <form onSubmit={handleSubmit}>
-                <label>
-                    Candidate Name:
-                    <select name="candidateName" value={interview.candidateName} onChange={handleChange}>
-                        <option value="">Select a Candidate</option>
-                        {candidates.map(candidate => (
-                            <option key={candidate.id} value={candidate.name}>{candidate.name}</option>
-                        ))}
-                    </select>
-                </label>
-                <label>
-                    Interview Date:
-                    <input type="date" name="interviewDate" value={interview.interviewDate} onChange={handleChange} />
-                </label>
-                <label>
-                    Time:
-                    <input type="time" name="time" value={interview.time} onChange={handleChange} />
-                </label>
-                <label>
-                    Interviewer:
-                    <select name="interviewer" value={interview.interviewer} onChange={handleChange}>
-                        <option value="">Select an Interviewer</option>
-                        {interviewers.map(interviewer => (
-                            <option key={interviewer.id} value={interviewer.name}>{interviewer.name}</option>
-                        ))}
-                    </select>
-                </label>
-                <label>
-                    Platform/Location:
-                    <input type="text" name="platformLocation" value={interview.platformLocation} onChange={handleChange} />
-                </label>
-                <label>
-                    Confirmation Status:
-                    <input type="checkbox" name="confirmationStatus" checked={interview.confirmationStatus} onChange={handleChange} />
-                </label>
-                <button type="submit">Schedule Interview</button>
-            </form>
+            <InterviewListView interviews={interviews} onSelectInterview={handleSelectInterview} onEditInterview={handleEditInterview} />
+            {(selectedInterview && isEditing) || (!selectedInterview && <InterviewForm onSubmit={handleInterviewSubmit} initialData={selectedInterview} />)}
         </div>
     );
 };
