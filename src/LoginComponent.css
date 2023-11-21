@@ -1,0 +1,76 @@
+/* LoginComponent.module.css */
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh; /* Full viewport height */
+    width: 100vw; /* Full viewport width */
+    background-color: #0d1117; /* Use your desired background color */
+  }
+  
+  .login-form {
+    padding: 2rem;
+    background: #21262d; /* Lighter background for the form */
+    border-radius: 8px;
+    box-shadow: 0 15px 25px rgba(0, 0, 0, 0.5); /* Shadow for depth */
+    width: 100%;
+    max-width: 400px; /* Maximum width of the form */
+  }
+  
+  .input-field {
+    margin-bottom: 1rem;
+    background: none;
+    border: none;
+    border-bottom: 2px solid #58a6ff; /* Highlighted bottom border */
+    color: #c9d1d9; /* Lighter text for readability */
+    padding: 10px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  
+  .input-field input {
+    background: none;
+    color: inherit;
+    border: none;
+    outline: none;
+    width: 100%;
+  }
+  .error-message {
+    color: red;
+    margin-bottom: 1rem;
+  }
+  
+  
+  .login-button {
+    width: 100%;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    background-color: #238636; /* Green background for the button */
+    color: white;
+    font-weight: bold;
+    margin-top: 20px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  
+  .login-button:hover {
+    background-color: #2ea043; /* Lighter green on hover */
+  }
+  
+  .form-heading {
+    color: #58a6ff; /* Color for the heading to match the inputs */
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+  
+  /* Add this to your global styles for a consistent font across the app */
+  body, html {
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #c9d1d9;
+    height: 100%;
+    width: 100%;
+  }
+  
